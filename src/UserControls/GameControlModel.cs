@@ -85,7 +85,7 @@ public partial class GameControlModel : ObservableObject
         gameControlWeakReference = new WeakReference<GameControl>(gameControl);
         Game = game;
         GameTitle = game.Title;
-        IsDLSS5Installed = DLSS5AutopilotManager.IsInstalled(game.InstallPath);
+        _ = RefreshDLSS5StateAsync();
 
 
         // Make sure NVAPIHelper is supported and the game has DLSS.
@@ -288,6 +288,11 @@ public partial class GameControlModel : ObservableObject
         }
     }
 
+    async Task RefreshDLSS5StateAsync()
+    {
+        IsDLSS5Installed = await DLSS5AutopilotManager.IsInstalledAsync(Game.InstallPath);
+    }
+
     [RelayCommand]
     async Task InstallDLSS5Async()
     {
@@ -318,7 +323,7 @@ public partial class GameControlModel : ObservableObject
         try
         {
             await new DLSS5AutopilotManager().InstallAsync(Game.InstallPath);
-            IsDLSS5Installed = DLSS5AutopilotManager.IsInstalled(Game.InstallPath);
+            await RefreshDLSS5StateAsync();
         }
         catch (Exception err)
         {
@@ -340,7 +345,7 @@ public partial class GameControlModel : ObservableObject
     [RelayCommand]
     async Task RemoveDLSS5Async()
     {
-        if (IsDLSS5Busy || DLSS5AutopilotManager.IsInstalled(Game.InstallPath) == false)
+        if (IsDLSS5Busy || IsDLSS5Installed == false)
         {
             return;
         }
@@ -367,7 +372,7 @@ public partial class GameControlModel : ObservableObject
         try
         {
             await new DLSS5AutopilotManager().RemoveAsync(Game.InstallPath);
-            IsDLSS5Installed = DLSS5AutopilotManager.IsInstalled(Game.InstallPath);
+            await RefreshDLSS5StateAsync();
         }
         catch (Exception err)
         {

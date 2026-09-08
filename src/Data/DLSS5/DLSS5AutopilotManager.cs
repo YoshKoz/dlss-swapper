@@ -25,11 +25,30 @@ internal sealed class DLSS5AutopilotManager
         return client;
     }
 
+    // Game folders can be huge and contain junctions or protected subfolders, so the probe must
+    // not throw halfway through the walk and must not chase a junction into another drive.
+    static readonly EnumerationOptions StatusSearchOptions = new EnumerationOptions()
+    {
+        RecurseSubdirectories = true,
+        IgnoreInaccessible = true,
+        MaxRecursionDepth = 8,
+    };
+
+    public static Task<bool> IsInstalledAsync(string gamePath)
+    {
+        return Task.Run(() => IsInstalled(gamePath));
+    }
+
     public static bool IsInstalled(string gamePath)
     {
+        if (string.IsNullOrEmpty(gamePath) || Directory.Exists(gamePath) == false)
+        {
+            return false;
+        }
+
         try
         {
-            var statusPath = Directory.EnumerateFiles(gamePath, "dlss5-autopilot.json", SearchOption.AllDirectories).FirstOrDefault();
+            var statusPath = Directory.EnumerateFiles(gamePath, "dlss5-autopilot.json", StatusSearchOptions).FirstOrDefault();
             if (statusPath is null)
             {
                 return false;
@@ -45,17 +64,17 @@ internal sealed class DLSS5AutopilotManager
         }
     }
 
-    public async Task InstallAsync(string gamePath)
+    public async Task InstallAsync(string gamePath, string? route = null)
     {
-        await RunAsync(gamePath, remove: false).ConfigureAwait(false);
+        await RunAsync(gamePath, remove: false, route: route).ConfigureAwait(false);
     }
 
     public async Task RemoveAsync(string gamePath)
     {
-        await RunAsync(gamePath, remove: true).ConfigureAwait(false);
+        await RunAsync(gamePath, remove: true, route: null).ConfigureAwait(false);
     }
 
-    async Task RunAsync(string gamePath, bool remove)
+    async Task RunAsync(string gamePath, bool remove, string? route)
     {
         if (Directory.Exists(gamePath) == false)
         {
@@ -78,10 +97,12 @@ internal sealed class DLSS5AutopilotManager
             {
                 startInfo.ArgumentList.Add("--remove");
             }
-            else
+            else if (string.IsNullOrEmpty(route) == false)
             {
+                // Without --route the tool picks per game and GPU. Forcing optiscaler is wrong on
+                // D3D11, where it replaces the game's DLSS with FSR.
                 startInfo.ArgumentList.Add("--route");
-                startInfo.ArgumentList.Add("optiscaler");
+                startInfo.ArgumentList.Add(route);
             }
 
             using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Could not start DLSS5 Autopilot.");
