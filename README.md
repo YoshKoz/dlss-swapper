@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> **Unofficial fork.** This is [beeradmoore/dlss-swapper](https://github.com/beeradmoore/dlss-swapper) with one addition: a per-game **DLSS 5 Neural Rendering** button that drives the [DLSS5-Autopilot](https://github.com/Kizzuwatnaa/DLSS5-Autopilot) CLI, so installing and removing the community DLSS 5 route happens from the game list instead of a separate scanner.
+>
+> The integration lives on the [`feature/dlss5-autopilot-integration`](https://github.com/YoshKoz/dlss-swapper/tree/feature/dlss5-autopilot-integration) branch. It downloads DLSS5-Autopilot at run time and verifies its SHA-256 checksum; nothing is bundled here.
+>
+> Not affiliated with, supported by, or endorsed by the upstream project or NVIDIA. **Do not report issues with this fork to upstream.** Modding a game's DLLs can break anti-cheat, so do not use it on multiplayer titles.
+
 <p align="center">
  <img width="150px" src="https://beeradmoore.github.io/dlss-swapper/logo_250.png" align="center" alt="GitHub Readme Stats" />
  <h2 align="center">DLSS Swapper
